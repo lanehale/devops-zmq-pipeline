@@ -37,7 +37,7 @@ curl -f http://localhost:7860/health
 docker-compose down
 docker image rm base_image:1.0 split_frames:1.0 edit_frames:1.0 view_frames:1.0
 ```
-<br>
+<div style="height: 1.5em;"></div>
 
 ## Image Optimization Notes
 See commented history in .env.example — reduced final image from 1.66 GB to 808 MB using multi-stage builds and cleanup.
