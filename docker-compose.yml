@@ -1,0 +1,112 @@
+services:
+  split_frames:
+    image: split_frames:${APP_VERSION} # Uses variable from .env file
+    build:
+      context: ./split_frames
+      dockerfile: Dockerfile
+      args:
+        # Map the .env variable APP_VERSION to the Dockerfile ARG BASE_VERSION
+        BASE_VERSION: "${APP_VERSION}"
+    container_name: split_frames
+    restart: unless-stopped
+    volumes:
+      # Format is 'host_path:container_path'
+      - ./data:/app/data
+    environment:
+      DATA_FILE: "./data/sample_video_30fps.mp4" # Explicitly set the environment variable inside the container
+      SPLIT_FRAMES_HOST: "0.0.0.0" # Bind to all interfaces inside container (0.0.0.0 is the standard bind inside a container)
+      SPLIT_FRAMES_PORT: "7001"
+    ports:
+      - "${SPLIT_FRAMES_PORT_HOST}:7001" # Uses variable from .env file
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges=true"
+    read_only: true
+    cpus: 1.0
+    mem_limit: 256M
+    mem_reservation: 128M # Reserves this much RAM on startup
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 2048
+      nproc:
+        soft: 512
+        hard: 512
+
+  edit_frames:
+    image: edit_frames:${APP_VERSION} # Uses variable from .env file
+    build:
+      context: ./edit_frames
+      dockerfile: Dockerfile
+      args:
+        BASE_VERSION: "${APP_VERSION}" # Map APP_VERSION to the Dockerfile ARG BASE_VERSION
+    container_name: edit_frames
+    restart: unless-stopped
+    depends_on:
+      - split_frames
+    environment:
+      SPLIT_FRAMES_HOST: "split_frames" # Use the SERVICE NAME as the hostname
+      SPLIT_FRAMES_PORT: "7001"
+      EDIT_FRAMES_HOST: "0.0.0.0" # Bind to all interfaces inside container
+      EDIT_FRAMES_PORT: "7002"
+    ports:
+      - "${EDIT_FRAMES_PORT_HOST}:7002" # Uses variable from .env file
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges=true"
+    read_only: true
+    cpus: 1.0
+    mem_limit: 256M
+    mem_reservation: 128M
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 2048
+      nproc:
+        soft: 512
+        hard: 512
+
+  view_frames:
+    image: view_frames:${APP_VERSION} # Uses variable from .env file
+    build:
+      context: ./view_frames
+      dockerfile: Dockerfile
+      args:
+        BASE_VERSION: "${APP_VERSION}" # Map APP_VERSION to the Dockerfile ARG BASE_VERSION
+    container_name: view_frames
+    restart: unless-stopped
+    depends_on:
+      - edit_frames
+    environment:
+      EDIT_FRAMES_HOST: "edit_frames" # Use the SERVICE NAME as the hostname
+      EDIT_FRAMES_PORT: "7002"
+    ports:
+      - "7860:7860"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-7860}/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    # Docker Security Rules
+    # RULE #3 - Limit Capabilities
+    cap_drop:
+      - ALL
+    # RULE #4 - Prevent in-container privilege escalation
+    security_opt:
+      - "no-new-privileges=true"
+    # RULE #8 - Set filesystem and volumes to read-only
+    read_only: true
+    # RULE #7 - Limit resources (memory, CPU, file descriptors, processes, restarts)
+    cpus: 1.0
+    mem_limit: 512M
+    mem_reservation: 256M
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 2048
+      nproc:
+        soft: 512
+        hard: 512

@@ -1,0 +1,5 @@
+# Example API key format for the safety audit tool
+# Get your own key from getsafety.com and save it locally as safety-api-key.txt
+# (never commit the real key to GitHub)
+
+YOUR_API_KEY_HERE
