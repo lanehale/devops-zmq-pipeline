@@ -54,6 +54,5 @@ See commented history in .env.example — reduced final image from 1.66 GB to 80
 - Monitor resource usage: `docker stats`
 - Filter containers: `docker ps -f name=split_frames`
 
-___
-
+## 
 Built as a personal learning project exploring distributed systems and container optimization.
