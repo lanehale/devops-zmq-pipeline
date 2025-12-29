@@ -38,6 +38,7 @@ docker-compose down
 docker image rm base_image:1.0 split_frames:1.0 edit_frames:1.0 view_frames:1.0
 ```
 
+
 ## Image Optimization Notes
 See commented history in .env.example — reduced final image from 1.66 GB to 808 MB using multi-stage builds and cleanup.
 
@@ -52,5 +53,7 @@ See commented history in .env.example — reduced final image from 1.66 GB to 80
 ## Debugging Tips
 - Monitor resource usage: `docker stats`
 - Filter containers: `docker ps -f name=split_frames`
+
+---
 
 Built as a personal learning project exploring distributed systems and container optimization.
